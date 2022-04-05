@@ -1,22 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Type Ahead 👀</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Type Ahead 👀</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <form class="search-form">
+            <input type="text" class="search" placeholder="City or State" />
+            <ul class="suggestions">
+                <li>Filter for a city</li>
+                <li>or a state</li>
+            </ul>
+        </form>
+        <script>
+            const endpoint =
+                "https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json";
+            
+            const cities = [];
 
-  <form class="search-form">
-    <input type="text" class="search" placeholder="City or State">
-    <ul class="suggestions">
-      <li>Filter for a city</li>
-      <li>or a state</li>
-    </ul>
-  </form>
-<script>
-const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+            fetch(endpoint)
+                .then(blob => blob.json())
+                .then(data => cities.push(...data));
+            
+            document.querySelector('input').addEventListener('keyup', function(event) {
+                findMatches();
+            } );
 
-</script>
-</body>
+            
+
+            function findMatches(event){
+                const text = document.querySelector('input').value.toLowerCase();
+                let matches = cities.filter(
+                    city => city.city.toLowerCase().includes(text) || city.state.toLowerCase().includes(text)
+                );
+                const ulMatches = document.querySelector('.suggestions');
+
+                const html = matches.map(place => {
+                    const regex = new RegExp(text, 'gi');
+                    const cityName = place.city.replace(regex, `<span class="hl">${text}</span>`);
+                    const stateName = place.state.replace(regex, `<span class="hl">${text}</span>`);
+                    return `
+                    <li>
+                        <span class="name">${cityName}, ${stateName}</span>
+                        <span class="population">${place.population}</span>
+                    </li>
+                    `;
+                }).join('');
+                
+                ulMatches.innerHTML = html;
+            }
+        </script>
+    </body>
 </html>
